@@ -1,0 +1,14 @@
+{
+  "name": "cloudscope",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "dependencies": {
+    "express": "~3.5.1"
+  }
+}
