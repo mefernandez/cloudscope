@@ -89,10 +89,19 @@
         }
         
         function handleAuthResult(authResult) {
+        if (authResult) {
+          // Access token has been successfully retrieved, requests can be sent to the API
           // A Google Drive public URL that contains a CSV with OmniScope's sample data of highest mountains
           var fileId = '0AjViUeEB6f2GdG82NFZNMVhweGduanIzVDdZWFU4NXc';
           var csvURL = 'https://docs.google.com/feeds/download/spreadsheets/Export?key=' + fileId + '&exportFormat=csv&gid=0';
           downloadFile(csvURL, csvReady);
+        } else {
+          // No access token could be retrieved, force the authorization flow.
+          gapi.auth.authorize(
+              {'client_id': clientId, 'scope': scopes, 'immediate': false},
+              handleAuthResult);
+        }
+
         }
 
       /**
