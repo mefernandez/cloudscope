@@ -1,155 +1,159 @@
-<html>
-	<head>
-		<title>CloudScope</title>
-    <script type="text/javascript">
-      /**
-       * This object holds the data upon which the business logic is performed.
-       */
-      var App = {
+  <html>
+  	<head>
+  		<title>CloudScope</title>
+      <script type="text/javascript">
         /**
-         * Wait until the Map and the CSV are ready
-         * to start painting markers in the Map.
+         * This object holds the data upon which the business logic is performed.
          */
-        ready: function(name, value) {
-          this[name] = value;
-          if(this.map && this.csv)
-            this.paintMarkers();
-        },
-        /**
-         * Visualiza the data contained in the CSV 
-         * as Markers in the Map.
-         * @see https://developers.google.com/maps/documentation/javascript/markers
-         */
-        paintMarkers: function() {
-          for (var i=0; i<this.csv.length; i++) {
-            
-            var lat = parseFloat(this.csv[i][3]);
-            var lng = parseFloat(this.csv[i][4]);
-            var myLatlng = new google.maps.LatLng(lat,lng);
-            var myTitle = this.csv[i][0];
-            var marker = new google.maps.Marker({
-                          position: myLatlng,
-                          title: myTitle
-                      });
-            
-            // To add the marker to the map, call setMap();
-            var map = this.map;
-            marker.setMap(map);
-            
-            /**
-             * Build an info window to show the rest of the information coming in the CSV
-             * @see https://developers.google.com/maps/documentation/javascript/infowindows
-             */
-            var contentString = '<div id="content">'+
-                  '<div id="siteNotice">'+
-                  '</div>'+
-                  '<h1 id="firstHeading" class="firstHeading">' + myTitle + '</h1>'+
-                  '<div id="bodyContent">'+
-                  '<ul>'+
-                '<li>' + this.csv[0][1] + ': ' + this.csv[i][1] + '</li>'+
-                '<li>' + this.csv[0][2] + ': ' + this.csv[i][2] + '</li>'+
-                  '<li><a href="' + this.csv[0][5] + '">'+ this.csv[i][5] + '</a></li>' +
-                  '</ul>'+
-                  '</div>'+
-                  '</div>';            
-            marker.contentString = contentString;
-            
-            google.maps.event.addListener(marker, 'click', function() {
-              var infowindow = new google.maps.InfoWindow({
-                content: this.contentString
+        var App = {
+          /**
+           * Wait until the Map and the CSV are ready
+           * to start painting markers in the Map.
+           */
+          ready: function(name, value) {
+            this[name] = value;
+            if(this.map && this.csv)
+              this.paintMarkers();
+          },
+          /**
+           * Visualize the data contained in the CSV 
+           * as Markers in the Map.
+           * @see https://developers.google.com/maps/documentation/javascript/markers
+           */
+          paintMarkers: function() {
+            for (var i=0; i<this.csv.length; i++) {
+              
+              var lat = parseFloat(this.csv[i][3]);
+              var lng = parseFloat(this.csv[i][4]);
+              var myLatlng = new google.maps.LatLng(lat,lng);
+              var myTitle = this.csv[i][0];
+              var marker = new google.maps.Marker({
+                            position: myLatlng,
+                            title: myTitle
+                        });
+              
+              // To add the marker to the map, call setMap();
+              var map = this.map;
+              marker.setMap(map);
+              
+              /**
+               * Build an info window to show the rest of the information coming in the CSV
+               * @see https://developers.google.com/maps/documentation/javascript/infowindows
+               */
+              var contentString = '<div id="content">'+
+                    '<div id="siteNotice">'+
+                    '</div>'+
+                    '<h1 id="firstHeading" class="firstHeading">' + myTitle + '</h1>'+
+                    '<div id="bodyContent">'+
+                    '<ul>'+
+                  '<li>' + this.csv[0][1] + ': ' + this.csv[i][1] + '</li>'+
+                  '<li>' + this.csv[0][2] + ': ' + this.csv[i][2] + '</li>'+
+                    '<li><a href="' + this.csv[0][5] + '">'+ this.csv[i][5] + '</a></li>' +
+                    '</ul>'+
+                    '</div>'+
+                    '</div>';            
+              marker.contentString = contentString;
+              
+              google.maps.event.addListener(marker, 'click', function() {
+                var infowindow = new google.maps.InfoWindow({
+                  content: this.contentString
+                });
+                infowindow.open(map,this);
               });
-              infowindow.open(map,this);
-            });
 
+            }
           }
         }
-      }
-    </script>
-    <script type="text/javascript">
-      /**
-       * Load the CSV using Google Drive's API.
-       * Client ID and API Key created with Google API Console.
-       * @see https://code.google.com/apis/console/
-       */
-      var clientId = '724831527813';
-      var apiKey = 'AIzaSyDUK6nr16VPGVCb3KhQSjW77M40HgN03Tw';
-      var scopes = 'https://www.googleapis.com/auth/drive';
+      </script>
+      <script type="text/javascript">
+        /**
+         * Load the CSV using Google Drive's API.
+         * Client ID and API Key created with Google API Console.
+         * @see https://code.google.com/apis/console/
+         */
+        var clientId = '724831527813';
+        var apiKey = 'AIzaSyDUK6nr16VPGVCb3KhQSjW77M40HgN03Tw';
+        var scopes = 'https://www.googleapis.com/auth/drive';
 
-      function handleClientLoad() {
-        // Step 2: Reference the API key
-        gapi.client.setApiKey(apiKey);
-        window.setTimeout(checkAuth,1);
-      }
+        function handleClientLoad() {
+          // Step 2: Reference the API key
+          gapi.client.setApiKey(apiKey);
+          window.setTimeout(checkAuth,1);
+        }
 
-      function checkAuth() {
-        gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
-      }
-      
-      function handleAuthResult(authResult) {
-        // A Google Drive public URL that contains a CSV with OmniScope's sample data of highest mountains
-        var csvURL = 'https://docs.google.com/feeds/download/spreadsheets/Export?key=0AjViUeEB6f2GdG82NFZNMVhweGduanIzVDdZWFU4NXc&exportFormat=csv&gid=0';
-        downloadFile(csvURL, csvReady);
-      }
-
-    /**
-     * Download a file's content.
-     * @see https://developers.google.com/drive/v2/reference/files/get
-     * @param {File} file Drive File instance.
-     * @param {Function} callback Function to call when the request is complete.
-     */
-    function downloadFile(downloadUrl, callback) {
-        var accessToken = gapi.auth.getToken().access_token;
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', downloadUrl);
-        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-        xhr.onload = function() {
-          callback(xhr.responseText);
-        };
-        xhr.onerror = function() {
-          callback(null);
-        };
-        xhr.send();
-    }
-      
-    function csvReady(csvData) {
-      var rows = csvData.split('\n');
-      var csv = [];
-      for (var i=0; i<rows.length; i++) {
-        csv.push(rows[i].split(','));
-      }
-      console.log(csv);
-      App.ready('csv', csv);
-    }
-
-    </script>
-    <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
-    
-     <style type="text/css">
-      html { height: 100% }
-      body { height: 100%; margin: 0; padding: 0 }
-      #map-canvas { height: 80% }
-    </style>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUK6nr16VPGVCb3KhQSjW77M40HgN03Tw&sensor=false"></script>
-    <script type="text/javascript">
-      /**
-       * Load the Map using Google Maps API
-       * @see https://developers.google.com/maps/documentation/javascript/tutorial
-       */
-      function initialize() {
-        var mapOptions = {
-          center: new google.maps.LatLng(27.2948304,84.0653352),
-          zoom: 6
-        };
-        var map = new google.maps.Map(document.getElementById("map-canvas"),
-            mapOptions);
+        /**
+         * @see https://developers.google.com/accounts/docs/OAuth2UserAgent
+         */
+        function checkAuth() {
+          gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
+        }
         
-        App.ready('map', map);
+        function handleAuthResult(authResult) {
+          // A Google Drive public URL that contains a CSV with OmniScope's sample data of highest mountains
+          var fileId = '0AjViUeEB6f2GdG82NFZNMVhweGduanIzVDdZWFU4NXc';
+          var csvURL = 'https://docs.google.com/feeds/download/spreadsheets/Export?key=' + fileId + '&exportFormat=csv&gid=0';
+          downloadFile(csvURL, csvReady);
+        }
+
+      /**
+       * Download a file's content.
+       * @see https://developers.google.com/drive/v2/reference/files/get
+       * @param {File} file Drive File instance.
+       * @param {Function} callback Function to call when the request is complete.
+       */
+      function downloadFile(downloadUrl, callback) {
+          var accessToken = gapi.auth.getToken().access_token;
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', downloadUrl);
+          xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+          xhr.onload = function() {
+            callback(xhr.responseText);
+          };
+          xhr.onerror = function() {
+            callback(null);
+          };
+          xhr.send();
       }
-      google.maps.event.addDomListener(window, 'load', initialize);
-    </script>
-    
-  </head>
-  <body>
-    <p>See the annotated source of this page in <a href="http://www.explainjs.com/explain?src=http%3A%2F%2Fmy-node-box-52001.euw1.nitrousbox.com%2F">ExplainJS.com</a></p>
-    <div id="map-canvas"/>
-  </body>
+        
+      function csvReady(csvData) {
+        var rows = csvData.split('\n');
+        var csv = [];
+        for (var i=0; i<rows.length; i++) {
+          csv.push(rows[i].split(','));
+        }
+        console.log(csv);
+        App.ready('csv', csv);
+      }
+
+      </script>
+      <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+      
+       <style type="text/css">
+        html { height: 100% }
+        body { height: 100%; margin: 0; padding: 0 }
+        #map-canvas { height: 80% }
+      </style>
+      <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUK6nr16VPGVCb3KhQSjW77M40HgN03Tw&sensor=false"></script>
+      <script type="text/javascript">
+        /**
+         * Load the Map using Google Maps API
+         * @see https://developers.google.com/maps/documentation/javascript/tutorial
+         */
+        function initialize() {
+          var mapOptions = {
+            center: new google.maps.LatLng(27.2948304,84.0653352),
+            zoom: 6
+          };
+          var map = new google.maps.Map(document.getElementById("map-canvas"),
+              mapOptions);
+          
+          App.ready('map', map);
+        }
+        google.maps.event.addDomListener(window, 'load', initialize);
+      </script>
+      
+    </head>
+    <body>
+      <p>See the annotated source of this page in <a href="http://www.explainjs.com/explain?src=http%3A%2F%2Fmy-node-box-52001.euw1.nitrousbox.com%2F">ExplainJS.com</a></p>
+      <div id="map-canvas"/>
+    </body>
