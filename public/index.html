@@ -2,11 +2,12 @@
 	<head>
 		<title>CloudScope</title>
     <script type="text/javascript">
-
+      /**
+       * Client ID and API Key created with Google API Console.
+       * @see https://code.google.com/apis/console/
+       */
       var clientId = '724831527813';
-
       var apiKey = 'AIzaSyDUK6nr16VPGVCb3KhQSjW77M40HgN03Tw';
-
       var scopes = 'https://www.googleapis.com/auth/drive';
 
       function handleClientLoad() {
@@ -18,126 +19,63 @@
       function checkAuth() {
         gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
       }
-
-      /**
-       * Called when authorization server replies.
-       * @see https://developers.google.com/drive/web/quickstart/quickstart-js#step_1_enable_the_drive_api
-       * @param {Object} authResult Authorization result.
-       */
+      
       function handleAuthResult(authResult) {
-        var authButton = document.getElementById('authorizeButton');
-        var filePicker = document.getElementById('filePicker');
-        var downloadButton = document.getElementById('downloadButton');
-        
-        authButton.style.display = 'none';
-        filePicker.style.display = 'none';
-        if (authResult && !authResult.error) {
-          // Access token has been successfully retrieved, requests can be sent to the API.
-          filePicker.style.display = 'block';
-          filePicker.onchange = uploadFile;
-          downloadButton.style.display = 'block';
-          downloadButton.onclick = downloadFile;
-          
-        } else {
-          // No access token could be retrieved, show the button to start the authorization flow.
-          authButton.style.display = 'block';
-          authButton.onclick = function() {
-              gapi.auth.authorize(
-                  {'client_id': CLIENT_ID, 'scope': SCOPES, 'immediate': false},
-                  handleAuthResult);
-          };
-        }
+        // A Google Drive URL that contains a CSV
+        var csvURL = 'https://docs.google.com/feeds/download/spreadsheets/Export?key=0AjViUeEB6f2GdG82NFZNMVhweGduanIzVDdZWFU4NXc&exportFormat=csv&gid=0';
+        downloadFile(csvURL, paintMap);
       }
-
-      /**
-       * Start the file upload.
-       *
-       * @param {Object} evt Arguments from the file selector.
-       */
-      function uploadFile(evt) {
-        gapi.client.load('drive', 'v2', function() {
-          var file = evt.target.files[0];
-          insertFile(file);
-        });
-      }
-
-      /**
-       * Insert new file.
-       *
-       * @param {File} fileData File object to read data from.
-       * @param {Function} callback Function to call when the request is complete.
-       */
-      function insertFile(fileData, callback) {
-        const boundary = '-------314159265358979323846';
-        const delimiter = "\r\n--" + boundary + "\r\n";
-        const close_delim = "\r\n--" + boundary + "--";
-
-        var reader = new FileReader();
-        reader.readAsBinaryString(fileData);
-        reader.onload = function(e) {
-          var contentType = fileData.type || 'application/octet-stream';
-          var metadata = {
-            'title': fileData.name,
-            'mimeType': contentType
-          };
-
-          var base64Data = btoa(reader.result);
-          var multipartRequestBody =
-              delimiter +
-              'Content-Type: application/json\r\n\r\n' +
-              JSON.stringify(metadata) +
-              delimiter +
-              'Content-Type: ' + contentType + '\r\n' +
-              'Content-Transfer-Encoding: base64\r\n' +
-              '\r\n' +
-              base64Data +
-              close_delim;
-
-          var request = gapi.client.request({
-              'path': '/upload/drive/v2/files',
-              'method': 'POST',
-              'params': {'uploadType': 'multipart'},
-              'headers': {
-                'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
-              },
-              'body': multipartRequestBody});
-          if (!callback) {
-            callback = function(file) {
-              console.log(file)
-            };
-          }
-          request.execute(callback);
-        }
-      }
-      
-      
-      function downloadFile(evt) {
-        gapi.client.load('drive', 'v2', function() {
-          printFile();
-        });
-      }
-      
-/**
- * Print a file's metadata.
- *
- * @param {String} fileId ID of the file to print metadata for.
- */
-function printFile() {
-  var request = gapi.client.drive.files.get({
-    'fileId': '0AjViUeEB6f2GdG82NFZNMVhweGduanIzVDdZWFU4NXc'
-  });
-  request.execute(function(resp) {
-    console.log('Title: ' + resp.title);
-    console.log('Description: ' + resp.description);
-    console.log('MIME type: ' + resp.mimeType);
-  });
-}
     </script>
     <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+    
+    <script type="text/javascript">
+      
+    /**
+     * Download a file's content.
+     *
+     * @param {File} file Drive File instance.
+     * @param {Function} callback Function to call when the request is complete.
+     */
+    function downloadFile(downloadUrl, callback) {
+        var accessToken = gapi.auth.getToken().access_token;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', downloadUrl);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+        xhr.onload = function() {
+          callback(xhr.responseText);
+        };
+        xhr.onerror = function() {
+          callback(null);
+        };
+        xhr.send();
+    }
+      
+    function paintMap(csvData) {
+      console.log(csvData);
+    }
+    </script>
+    
+     <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map-canvas { height: 100% }
+    </style>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUK6nr16VPGVCb3KhQSjW77M40HgN03Tw&sensor=false"></script>
+    <script type="text/javascript">
+      function initialize() {
+        var mapOptions = {
+          center: new google.maps.LatLng(-34.397, 150.644),
+          zoom: 8
+        };
+        var map = new google.maps.Map(document.getElementById("map-canvas"),
+            mapOptions);
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+    
   </head>
   <body>
-    <!--Add a file picker for the user to start the upload process -->
-    <input type="file" id="filePicker" style="display: none" />
-    <input type="button" id="authorizeButton" style="display: none" value="Authorize" />
-    <input type="button" id="downloadButton" style="display: none" value="Get File" />
+    <div id="map-canvas"/>
+           
+             
   </body>
