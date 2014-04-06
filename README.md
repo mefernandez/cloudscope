@@ -10,4 +10,4 @@ A mashup inspired by Omniscope
 
 ## Screenshot
 
-![CloudScope view of a Map][cloudscope]
+![CloudScope view of a Map](https://raw.githubusercontent.com/mefernandez/cloudscope/master/cloudscope.png)
