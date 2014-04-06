@@ -27,12 +27,17 @@
       function handleAuthResult(authResult) {
         var authButton = document.getElementById('authorizeButton');
         var filePicker = document.getElementById('filePicker');
+        var downloadButton = document.getElementById('downloadButton');
+        
         authButton.style.display = 'none';
         filePicker.style.display = 'none';
         if (authResult && !authResult.error) {
           // Access token has been successfully retrieved, requests can be sent to the API.
           filePicker.style.display = 'block';
           filePicker.onchange = uploadFile;
+          downloadButton.style.display = 'block';
+          downloadButton.onclick = downloadFile;
+          
         } else {
           // No access token could be retrieved, show the button to start the authorization flow.
           authButton.style.display = 'block';
@@ -104,6 +109,29 @@
           request.execute(callback);
         }
       }
+      
+      
+      function downloadFile(evt) {
+        gapi.client.load('drive', 'v2', function() {
+          printFile();
+        });
+      }
+      
+/**
+ * Print a file's metadata.
+ *
+ * @param {String} fileId ID of the file to print metadata for.
+ */
+function printFile() {
+  var request = gapi.client.drive.files.get({
+    'fileId': '0AjViUeEB6f2GdG82NFZNMVhweGduanIzVDdZWFU4NXc'
+  });
+  request.execute(function(resp) {
+    console.log('Title: ' + resp.title);
+    console.log('Description: ' + resp.description);
+    console.log('MIME type: ' + resp.mimeType);
+  });
+}
     </script>
     <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
   </head>
@@ -111,4 +139,5 @@
     <!--Add a file picker for the user to start the upload process -->
     <input type="file" id="filePicker" style="display: none" />
     <input type="button" id="authorizeButton" style="display: none" value="Authorize" />
+    <input type="button" id="downloadButton" style="display: none" value="Get File" />
   </body>
