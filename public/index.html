@@ -3,6 +3,21 @@
 		<title>CloudScope</title>
     <script type="text/javascript">
       /**
+       * This object holds the data upon which the business logic is performed.
+       */
+      var App = {
+        ready: function(name, value) {
+          this[name] = value;
+          if(this.map && this.csv)
+            this.paintMap();
+        },
+        paintMap: function() {
+          console.log('CSV and Map Ready');
+        }
+      }
+    </script>
+    <script type="text/javascript">
+      /**
        * Client ID and API Key created with Google API Console.
        * @see https://code.google.com/apis/console/
        */
@@ -23,13 +38,9 @@
       function handleAuthResult(authResult) {
         // A Google Drive URL that contains a CSV
         var csvURL = 'https://docs.google.com/feeds/download/spreadsheets/Export?key=0AjViUeEB6f2GdG82NFZNMVhweGduanIzVDdZWFU4NXc&exportFormat=csv&gid=0';
-        downloadFile(csvURL, paintMap);
+        downloadFile(csvURL, csvReady);
       }
-    </script>
-    <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
-    
-    <script type="text/javascript">
-      
+
     /**
      * Download a file's content.
      *
@@ -50,10 +61,13 @@
         xhr.send();
     }
       
-    function paintMap(csvData) {
+    function csvReady(csvData) {
       console.log(csvData);
+      App.ready('csv', csvData);
     }
+
     </script>
+    <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
     
      <style type="text/css">
       html { height: 100% }
@@ -62,13 +76,29 @@
     </style>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUK6nr16VPGVCb3KhQSjW77M40HgN03Tw&sensor=false"></script>
     <script type="text/javascript">
+      /**
+       * @see https://developers.google.com/maps/documentation/javascript/tutorial
+       */
       function initialize() {
         var mapOptions = {
           center: new google.maps.LatLng(-34.397, 150.644),
-          zoom: 8
+          zoom: 2
         };
         var map = new google.maps.Map(document.getElementById("map-canvas"),
             mapOptions);
+        
+        /**
+         * @see https://developers.google.com/maps/documentation/javascript/markers
+         */
+        var myLatlng = new google.maps.LatLng(39.5029182,-0.4423082);
+        var marker = new google.maps.Marker({
+                      position: myLatlng,
+                      title:"Hello World!"
+                  });
+
+        // To add the marker to the map, call setMap();
+        marker.setMap(map);
+        App.ready('map', map);
       }
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
